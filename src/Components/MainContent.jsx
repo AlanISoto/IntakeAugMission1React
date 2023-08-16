@@ -7,18 +7,56 @@ function MainContent() {
     year: "",
     selfReport: "",
   });
+  const [carValue, setCarValue] = useState(null);
+  const [riskRating, setRiskRating] = useState(null);
+  const [monthlyPremium, setMonthlyPremium] = useState(null);
+  const [yearlyPremium, setYearlyPremium] = useState(null);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     try {
       const response = await axios.post("/calculate-value", formData);
-      const carValue = response.data.car_value;
+      const calculatedCarValue = response.data.car_value;
 
-      const quoteContainer = document.getElementById("quoteContainer");
-      quoteContainer.innerHTML = `Suggested Car Value: $${carValue}`;
+      setCarValue(calculatedCarValue);
+
+      await handleRiskRatingSubmit();
     } catch (error) {
       console.error("Error calculating car value:", error);
+    }
+  };
+
+  const handleRiskRatingSubmit = async () => {
+    try {
+      const response = await axios.post("/calculate-risk-rating", {
+        claim_history: formData.selfReport,
+      });
+      const calculatedRiskRating = response.data.risk_rating;
+
+      setRiskRating(calculatedRiskRating);
+    } catch (error) {
+      console.error("Error calculating risk rating:", error);
+    }
+  };
+
+  const handleConvertToQuote = async () => {
+    try {
+      const response = await axios.post("/convert-to-quote", {
+        car_value: carValue,
+        risk_rating: riskRating,
+      });
+      const { monthly_premium, yearly_premium, error } = response.data;
+
+      if (error) {
+        console.error("Error converting to quote:", error);
+        return;
+      }
+
+      setMonthlyPremium(monthly_premium);
+      setYearlyPremium(yearly_premium);
+    } catch (error) {
+      console.error("Error converting to quote:", error);
     }
   };
 
@@ -105,9 +143,39 @@ function MainContent() {
             >
               Calculate Quote
             </button>
+            <button
+              type="button"
+              className="btn btn-secondary bg-white text-black ml-4"
+              onClick={handleConvertToQuote}
+            >
+              Convert to Quote
+            </button>
           </div>
         </form>
-        <div className="quote-container mt-4" id="quoteContainer"></div>
+        {carValue !== null && (
+          <div className="mt-4 p-4 bg-white rounded-lg text-center">
+            <p className="font-bold text-lg text-blue-600">
+              Suggested Car Value:
+            </p>
+            <p className="text-2xl text-blue-600">${carValue}</p>
+          </div>
+        )}
+        {riskRating !== null && (
+          <div className="mt-4 p-4 bg-white rounded-lg text-center">
+            <p className="font-bold text-lg text-red-600">Risk Rating:</p>
+            <p className="text-2xl text-red-600">{riskRating}</p>
+          </div>
+        )}
+        {monthlyPremium !== null && yearlyPremium !== null && (
+          <div className="mt-4 p-4 bg-white rounded-lg text-center">
+            <p className="font-bold text-lg text-green-600">Quote:</p>
+            <p className="text-xl text-green-600">
+              Monthly Premium: ${monthlyPremium}
+              <br />
+              Yearly Premium: ${yearlyPremium}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
