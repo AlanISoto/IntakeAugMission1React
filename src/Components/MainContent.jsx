@@ -1,47 +1,113 @@
-import React from "react";
+import React, { useState } from "react";
+import axios from "axios";
 
 function MainContent() {
+  const [formData, setFormData] = useState({
+    model: "",
+    year: "",
+    selfReport: "",
+  });
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    try {
+      const response = await axios.post("/calculate-value", formData);
+      const carValue = response.data.car_value;
+
+      const quoteContainer = document.getElementById("quoteContainer");
+      quoteContainer.innerHTML = `Suggested Car Value: $${carValue}`;
+    } catch (error) {
+      console.error("Error calculating car value:", error);
+    }
+  };
+
   return (
-    <div>
-      <div
-        className="hero min-h-screen"
-        style={{
-          backgroundImage: "url(https://i.imgur.com/f2gQ7aj.jpg)",
-        }}
-      >
-        <div className="hero-overlay bg-opacity-60 "></div>
-        <div className="hero-content text-center text-neutral-content flex flex-col space-y-4 ">
-          <div className="max-w-md ">
-            <h1 className="mb-96  text-5xl font-bold  ">
-              Poco Loco Tapas Restaurant
-            </h1>
+    <div
+      className="flex justify-center items-center min-h-screen bg-cover"
+      style={{
+        backgroundImage:
+          "url('https://www.turnersautogroup.co.nz/wp-content/uploads/2022/08/Blue-Sky-Trusted-brand.png')",
+        backgroundPosition: "center bottom 35%",
+        backgroundSize: "cover",
+      }}
+    >
+      <div className="w-full max-w-md p-6 bg-blue-600 rounded-lg shadow-lg">
+        <h1 className="text-4xl font-bold mb-4 text-center text-gray-800">
+          Welcome! Get a Quote
+        </h1>
+        <form
+          id="quoteForm"
+          className="space-y-4"
+          onSubmit={handleSubmit}
+          style={{
+            color: "#0354a3",
+            fontFamily: "TurnersSans-Regular, sans-serif",
+          }}
+        >
+          <div>
+            <label htmlFor="model" className="block font-medium text-white">
+              Car Model:
+            </label>
+            <input
+              type="text"
+              id="model"
+              name="model"
+              value={formData.model}
+              onChange={(e) =>
+                setFormData({ ...formData, model: e.target.value })
+              }
+              className="input input-bordered w-full bg-white text-black"
+              required
+            />
           </div>
-          <div className="form-control">
-            <div className="input-group">
-              <input
-                type="text"
-                placeholder="Search…"
-                className="input input-bordered"
-              />
-              <button className="btn btn-square">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </button>
-            </div>
+
+          <div>
+            <label htmlFor="year" className="block font-medium text-white">
+              Car Year:
+            </label>
+            <input
+              type="number"
+              id="year"
+              name="year"
+              value={formData.year}
+              onChange={(e) =>
+                setFormData({ ...formData, year: e.target.value })
+              }
+              className="input input-bordered w-full bg-white text-black"
+              required
+            />
           </div>
-        </div>
+
+          <div>
+            <label
+              htmlFor="selfReport"
+              className="block font-medium text-white"
+            >
+              Self Report:
+            </label>
+            <textarea
+              id="selfReport"
+              name="selfReport"
+              value={formData.selfReport}
+              onChange={(e) =>
+                setFormData({ ...formData, selfReport: e.target.value })
+              }
+              className="input input-bordered w-full h-24 bg-white text-black"
+              required
+            />
+          </div>
+
+          <div className="flex justify-center">
+            <button
+              type="submit"
+              className="btn btn-primary bg-white text-black"
+            >
+              Calculate Quote
+            </button>
+          </div>
+        </form>
+        <div className="quote-container mt-4" id="quoteContainer"></div>
       </div>
     </div>
   );
